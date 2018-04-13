@@ -1,6 +1,6 @@
 Package: pivot
 Title: Pivot and Unpivot
-Version: 2018.3.15
+Version: 2018.4.18
 Authors@R: person("Andrew", "Redd", role = c("aut", "cre")
                  , email = "Andrew.Redd@hsc.utah.edu"
                  , comment = c(ORCID = "https://orcid.org/000-0002-6149-2438")
