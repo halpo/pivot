@@ -1,7 +1,7 @@
 # pivot
 
 [![Build Status](https://travis-ci.org/haplo/pivot.svg?branch=master)](https://travis-ci.org/tidyverse/pivot)
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/pivot)](http://cran.r-project.org/package=pivot)
+[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/pivot)](https://cran.r-project.org/package=pivot)
 
 ## License Disclaimer
 
@@ -14,11 +14,12 @@ license restrictions.  This code is released without any guarantee of
 suitability for any purpose.
 
 ## Overview
-The `pivot` R pacakge extends the capabilities of [dbplyr](http://cran.r-project.org/package=dbplyr) 
-to have pivot and unpivot capabilities.  It currently works only for Microsoft SQL Server.
-For convenience it also provides extentions the [tidyr](http://cran.r-project.org/package=tidyr)
-functions [spread](http://tidyr.tidyverse.org/reference/spread.html) 
-and [gather](http://tidyr.tidyverse.org/reference/gather.html)
+The `pivot` R pacakge extends the capabilities of [dbplyr](https://cran.r-project.org/package=dbplyr) 
+to have [pivot and unpivot](https://technet.microsoft.com/en-us/library/ms177410(v=sql.105).aspx) capabilities.  
+It currently works only for Microsoft SQL Server.
+For convenience it also provides extentions the [tidyr](https://cran.r-project.org/package=tidyr)
+functions [spread](https://tidyr.tidyverse.org/reference/spread.html) 
+and [gather](https://tidyr.tidyverse.org/reference/gather.html)
 to act on remote Microsoft SQL Tables without needing to collect the data first. 
 
 
