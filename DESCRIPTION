@@ -1,0 +1,23 @@
+Package: pivot
+Title: Pivot and Unpivot
+Version: 2018.3.15
+Authors@R: person("Andrew", "Redd", role = c("aut", "cre")
+                 , email = "Andrew.Redd@hsc.utah.edu"
+                 , comment = c(ORCID = "https://orcid.org/000-0002-6149-2438")
+                 )
+Description: 
+    This package provides the Pivot and Unpivot 
+    functions for Microsoft SQL Server.
+Depends: R (>= 3.4.3)
+Imports: assertthat, dplyr, dbplyr (>= 1.2.1), DBI, magrittr, purrr,
+        rlang, tidyselect, tidyr
+Enhances: odbc
+License: Unlimited
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 6.0.1
+Collate: 'pivot.R' 'unpivot.R' 'tidyr.R'
+NeedsCompilation: no
+Packaged: 2018-04-12 18:09:30 UTC; VHASLCReddA
+Author: Andrew Redd [aut, cre] (https://orcid.org/000-0002-6149-2438)
+Maintainer: Andrew Redd <Andrew.Redd@hsc.utah.edu>
