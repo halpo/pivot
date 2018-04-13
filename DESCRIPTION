@@ -9,7 +9,7 @@ Maintainer: Andrew Redd <Andrew.Redd@hsc.utah.edu>
 Description: 
     This package provides the Pivot and Unpivot 
     functions for Microsoft SQL Server.
-Depends: R (>= 3.4.3)
+Depends: R (>= 3.4.0)
 Imports: assertthat, dplyr, dbplyr (>= 1.2.1), DBI, magrittr, purrr,
         rlang, tidyselect, tidyr
 Enhances: odbc

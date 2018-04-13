@@ -33,3 +33,12 @@ present. Both types of missing value will be replaced by \code{fill}.}
 \description{
 Pivot a table
 }
+\examples{
+\dontrun{
+# establish db as a database connection
+library(dbplyr)
+library(tidyverse)
+db_iris <- copy_to(db, iris)
+pivot(db_iris, Species, mean(Petal.Length, na.rm=TRUE), everything())
+}
+}

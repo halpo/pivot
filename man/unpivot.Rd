@@ -28,3 +28,15 @@ names or column positions).}
 \description{
 Pivot a table
 }
+\examples{
+\dontrun{
+# establish db as a database connection
+library(dbplyr)
+library(tidyverse)
+db_iris <- copy_to(db, iris)
+long.iris <- unpivot(db_iris, Variable, Value, Sepal.Length, Sepal.Width, Petal.Length, Petal.Width)
+means <- summarise(group_by(long.iris, Species, Variable), Mean = mean(Value, na.rm=TRUE)
+pivot(means, Species, setosa, versicolor, virginica)
+}
+
+}

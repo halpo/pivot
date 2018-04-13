@@ -3,7 +3,14 @@
 #'
 #' @inheritParams tidyr::spread
 #' @param ... Selection criteria for levels of key to select.
-#'
+#' @examples
+#' \dontrun{
+#' # establish db as a database connection
+#' library(dbplyr)
+#' library(tidyverse)
+#' db_iris <- copy_to(db, iris)
+#' pivot(db_iris, Species, mean(Petal.Length, na.rm=TRUE), everything())
+#' }
 #' @export
 pivot <- function(data, key, value, ..., fill=NULL)UseMethod("pivot")
 
