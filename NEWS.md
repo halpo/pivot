@@ -1,3 +1,3 @@
-# Pivot 2018.4.18
+# Pivot 18.4.17 (17 April 2018)
 
 * Initial Release
