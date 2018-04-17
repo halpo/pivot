@@ -1,7 +1,7 @@
 # pivot
 
 [![Build Status](https://travis-ci.org/haplo/pivot.svg?branch=master)](https://travis-ci.org/tidyverse/pivot)
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/pivot)](https://cran.r-project.org/package=pivot)
+<!--[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/pivot)](https://cran.r-project.org/package=pivot)-->
 
 ## License Disclaimer
 
