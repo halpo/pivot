@@ -76,7 +76,7 @@ op_grps.op_unpivot <- function(op)op_grps(op$x)
 #' @param from   the from clause
 #' @param select variables to select in addition to levels.
 #' @param key    Variable columns originate from
-#' @param value  The expresion to evaluate to create the values
+#' @param value  The expression to evaluate to create the values
 #' @param levels the columns to turn into values of a variable.
 #' @param order_by optional order by clause
 #'

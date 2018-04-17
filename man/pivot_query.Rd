@@ -12,7 +12,7 @@ pivot_query(from, key, value, levels, select = character(0),
 
 \item{key}{Variable columns originate from}
 
-\item{value}{The expresion to evaluate to create the values}
+\item{value}{The expression to evaluate to create the values}
 
 \item{levels}{the levels of key to turn into columns.}
 
@@ -22,7 +22,7 @@ pivot_query(from, key, value, levels, select = character(0),
 
 \item{fill}{optional value to fill in structural missing values.
 It is the responsibility of the user to ensure type
-compatability.}
+compatibility.}
 }
 \description{
 Create a pivot table

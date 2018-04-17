@@ -15,7 +15,7 @@ sql_pivot(con, from, select, key, value, levels, ...)
 
 \item{key}{Variable columns originate from}
 
-\item{value}{The expresion to evaluate to create the values}
+\item{value}{The expression to evaluate to create the values}
 
 \item{levels}{the levels of key to turn into columns.}
 

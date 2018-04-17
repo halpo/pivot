@@ -15,7 +15,7 @@ sql_unpivot(con, from, select, key, value, levels, order_by = NULL)
 
 \item{key}{Variable columns originate from}
 
-\item{value}{The expresion to evaluate to create the values}
+\item{value}{The expression to evaluate to create the values}
 
 \item{levels}{the columns to turn into values of a variable.}
 

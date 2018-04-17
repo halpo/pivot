@@ -145,12 +145,12 @@ op_grps.op_pivot <- function(op)op_grps(op$x)
 #' @param from     the from clause
 #' @param select   variables to select in addition to levels.
 #' @param key      Variable columns originate from
-#' @param value    The expresion to evaluate to create the values
+#' @param value    The expression to evaluate to create the values
 #' @param levels   the levels of key to turn into columns.
 #' @param order_by optional order by clause
 #' @param fill     optional value to fill in structural missing values.
 #'                 It is the responsibility of the user to ensure type
-#'                 compatability.
+#'                 compatibility.
 #' @export
 pivot_query <-
 function( from
