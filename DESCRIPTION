@@ -7,8 +7,9 @@ Authors@R: person("Andrew", "Redd", role = c("aut", "cre")
                  )
 Maintainer: Andrew Redd <Andrew.Redd@hsc.utah.edu>
 Description: 
-    Provides the Pivot and Unpivot 
-    functions for Microsoft SQL Server.
+    Extends the tidyverse dbplyr and tidyr functionality with pivot (ie. spread)
+    and unpivot (ie. gather) for reshaping remote sql_tbl tables 
+    residing. Currently only Microsoft SQL Server is supported. 
 Depends: R (>= 3.4.0)
 Imports: assertthat, dplyr, dbplyr (>= 1.2.1), DBI, magrittr, purrr,
         rlang, tidyselect, tidyr, lubridate, colorspace
