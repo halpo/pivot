@@ -42,6 +42,10 @@ established connection to a Microsoft SQL Database.  I have gone to
 the extent of simulating the database connection and remote tables, and 
 have checked that the SQL rendered is what would be expected.  The 
 examples and tests should run now.
+
+`winbuilder` still gives false positive spelling notes, but the 
+`spelling::spell_check_package()` comes back clean.
+
 ---
 
 * win_builder gives 1 note due to the unrecognized word 'unpivot'
