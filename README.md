@@ -1,6 +1,6 @@
 # pivot
 
-[![Build Status](https://travis-ci.org/haplo/pivot.svg?branch=master)](https://travis-ci.org/tidyverse/pivot)
+[![Build Status](https://travis-ci.org/haplo/pivot.svg?branch=master)](https://travis-ci.org/halpo/pivot)
 [![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/pivot)](https://cran.r-project.org/package=pivot)
 [![codecov.io](https://codecov.io/github/halpo/pivot/coverage.svg?branch=master)](https://codecov.io/github/halpo/pivot?branch=master)
 
