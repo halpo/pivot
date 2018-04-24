@@ -4,8 +4,8 @@
 \alias{pivot_query}
 \title{Create a pivot query representation}
 \usage{
-pivot_query(from, key, value, levels, select = character(0),
-  order_by = NULL, fill = NULL)
+pivot_query(from, key, value, levels, select = ident(), order_by = NULL,
+  fill = NULL)
 }
 \arguments{
 \item{from}{the from clause}
@@ -26,4 +26,15 @@ compatibility.}
 }
 \description{
 Create a pivot table
+}
+\examples{
+library(dplyr)
+library(dbplyr)
+con <- simulate_mssql()
+
+query <- pivot_query( ident('##iris'), key = ident('Species')
+                    , levels = ident(c('setosa', 'virginica', 'versicolor'))
+                    , value  = rlang::quo(mean(Petal.Length, na.rm=TRUE))
+                    )
+sql_render(query, con=con)
 }

@@ -34,11 +34,25 @@ present. Both types of missing value will be replaced by \code{fill}.}
 Pivot a table
 }
 \examples{
-\dontrun{
-# establish db as a database connection
+library(dplyr)
 library(dbplyr)
-library(tidyverse)
-db_iris <- copy_to(db, iris)
-pivot(db_iris, Species, mean(Petal.Length, na.rm=TRUE), everything())
+# establish db as a database connection
+\dontshow{
+   con <- simulate_mssql()
+   src <- src_dbi(con)
+   base <- list( x = ident('##iris')
+               , vars  = tbl_vars(iris)
+               ) \%>\% structure(class=c('op_base_remote', 'op_base', 'op'))
+   db_iris <- structure( list( src = src
+                             , ops = base
+                             )
+       , class = c('tbl_dbi', 'tbl_sql', 'tbl_lazy', 'tbl'))
 }
+\dontrun{
+db_iris <- copy_to(db, iris)
+}
+result <- pivot( db_iris, Species, mean(Petal.Length, na.rm=TRUE)
+               , setosa, versicolor, virginica)
+sql_render(result)
+
 }

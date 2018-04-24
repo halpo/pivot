@@ -4,13 +4,27 @@
 #' @inheritParams tidyr::spread
 #' @param ... Selection criteria for levels of key to select.
 #' @examples
-#' \dontrun{
-#' # establish db as a database connection
+#' library(dplyr)
 #' library(dbplyr)
-#' library(tidyverse)
-#' db_iris <- copy_to(db, iris)
-#' pivot(db_iris, Species, mean(Petal.Length, na.rm=TRUE), everything())
+#' # establish db as a database connection
+#' \dontshow{
+#'    con <- simulate_mssql()
+#'    src <- src_dbi(con)
+#'    base <- list( x = ident('##iris')
+#'                , vars  = tbl_vars(iris)
+#'                ) %>% structure(class=c('op_base_remote', 'op_base', 'op'))
+#'    db_iris <- structure( list( src = src
+#'                              , ops = base
+#'                              )
+#'        , class = c('tbl_dbi', 'tbl_sql', 'tbl_lazy', 'tbl'))
 #' }
+#' \dontrun{
+#' db_iris <- copy_to(db, iris)
+#' }
+#' result <- pivot( db_iris, Species, mean(Petal.Length, na.rm=TRUE)
+#'                , setosa, versicolor, virginica)
+#' sql_render(result)
+#' 
 #' @export
 pivot <- function(data, key, value, ..., fill=NULL)UseMethod("pivot")
 
@@ -40,6 +54,60 @@ function( data, key, value, ..., fill=NULL
     add_op_single('pivot', data, dots, args)
 }
 
+#' @export
+#' @importFrom rlang :=
+pivot.data.frame <- 
+function( data, key, value, ...
+        , fill =NULL
+        , info = getOption("pivot::info", FALSE)
+        ){
+    key   <- rlang::enquo(key)
+    value <- rlang::enquo(value)
+    dots  <- rlang::quos(...)
+    if (is.null(fill)) fill <- NA
+    if (identical(dots, rlang::quos())){
+        if (info) message("No levels specified, defaulting to everything().")
+        dots <- rlang::quos(tidyselect::everything())
+    }
+    
+    if (rlang::quo_is_call(value)){
+        used <- all_names(value)
+        remaining <- setdiff(dplyr::tbl_vars(data), used)
+        levels  <- tidyselect::vars_select(as.character(unique(dplyr::pull(data, !!key))), !!!dots)
+        dplyr::summarise( dplyr::group_by_(data, .dots=remaining)
+                        , !!rlang::quo_text(value) := !!value
+                        ) %>%
+        dplyr::select(
+            dplyr::ungroup(
+                spread( key=!!key, value=!!rlang::quo_text(value), fill=fill
+                      , convert=FALSE, drop=TRUE, sep=NULL)),
+        !!!dplyr::group_vars(data), !!!levels)
+    } else {
+        spread.data <- 
+        tidyr::spread(data, key=!!key, value=!!value, fill=fill
+                     , convert=FALSE, drop=TRUE, sep=NULL)
+        dplyr::select(spread.data, !!!dplyr::group_vars(data), !!!dots)
+    }
+}
+if (FALSE) {#@testing
+tmp <- iris %>%
+    group_by(Species) %>% 
+    mutate(case_id = row_number()) %>% 
+    ungroup() %>%
+    gather(Variable, Value, 1:4) 
+tmp %>% spread(Species, Value)
+
+
+long.iris <- unpivot(iris, Variable, Value, Sepal.Length, Sepal.Width, Petal.Length, Petal.Width)
+means <- summarise(group_by(long.iris, Species, Variable), Mean = mean(Value, na.rm=TRUE))
+result <- pivot(means, Species, Mean, starts_with('v'))
+
+expect_is(result, 'tbl_df')
+expect_equal(dplyr::tbl_vars(result), c('Variable', 'versicolor', 'virginica'))
+expect_equal(pull(result, 'Variable'), c('Petal.Length', 'Petal.Width', 'Sepal.Length', 'Sepal.Width'))
+}
+  
+# nocov start
 find_connection <- function(x)UseMethod('find_connection')
 
 find_connection.op <- function(x){
@@ -99,6 +167,7 @@ function( op
         return (purrr::map_chr(op$dots, rlang::quo_text))
     get_pivot_levels(op$x, !!op$args$key, !!!op$dots, con=con)
 }
+# nocov end
 
 all_names <- function (x) {
     if (is.name(x))  return(as.character(x))
@@ -115,9 +184,9 @@ sql_build.op_pivot <- function(op, con, ...){
     levels    <- if (!is.null(op$args$levels)) op$args$levels
                     else levels_op_pivot(op, con=con)
     select <- if (length(op_grps(op$x)) == 0)
-            dplyr::select_vars(op_vars(op$x), exclude=c(key, used_vars))
+            tidyselect::vars_select(op_vars(op$x), .exclude=c(key, used_vars))
         else
-            dplyr::select_vars(op_vars(op$x), include=op_grps(op$x))
+            tidyselect::vars_select(op_vars(op$x), .include=op_grps(op$x))
 
     assert_that(!any(used_vars %in% select))
 
@@ -132,7 +201,11 @@ sql_build.op_pivot <- function(op, con, ...){
 
 #' @export
 #' @importFrom dbplyr op_vars
-op_vars.op_pivot <- function(op)c( op_grps(op), unname(levels_op_pivot(op)))
+op_vars.op_pivot <- function(op){
+    names <- base::names(levels_op_pivot(op))
+    names <- dplyr::coalesce(dplyr::na_if(names, ''), levels_op_pivot(op))
+    c( op_grps(op), names)
+}
 
 #' @export
 #' @importFrom dbplyr op_grps
@@ -151,20 +224,30 @@ op_grps.op_pivot <- function(op)op_grps(op$x)
 #' @param fill     optional value to fill in structural missing values.
 #'                 It is the responsibility of the user to ensure type
 #'                 compatibility.
+#' @examples
+#' library(dplyr)
+#' library(dbplyr)
+#' con <- simulate_mssql()
+#' 
+#' query <- pivot_query( ident('##iris'), key = ident('Species')
+#'                     , levels = ident(c('setosa', 'virginica', 'versicolor'))
+#'                     , value  = rlang::quo(mean(Petal.Length, na.rm=TRUE))
+#'                     )
+#' sql_render(query, con=con)
 #' @export
 pivot_query <-
 function( from
         , key
         , value
         , levels
-        , select = character(0)
+        , select = ident()
         , order_by = NULL
         , fill = NULL
         ){
     assert_that( rlang::is_quosure(value)
                , dbplyr::is.ident(key)
                , dbplyr::is.ident(levels)
-               , dbplyr::is.ident(select) || is.null(select)
+               , dbplyr::is.ident(select) || (length(select)==0)
                , dbplyr::is.ident(order_by) || is.null(order_by)
                )
     structure( list( from   = from
@@ -173,6 +256,7 @@ function( from
                    , levels = levels
                    , select = select
                    , fill = fill
+                   , order_by = order_by
                    )
              , class = c('pivot_query', 'query')
              )
@@ -205,6 +289,16 @@ function( query, con=query$con, ..., root=FALSE){
 #' @param ...   arguments to pass on or ignore.
 #'
 #' @importFrom dbplyr escape
+#' @examples
+#' library(dbplyr)
+#' query <- sql_pivot( dbplyr::simulate_mssql()
+#'                   , from   = ident('##iris')
+#'                   , select = ident()
+#'                   , key    = ident('Species')
+#'                   , value  = rlang::quo(mean(Petal.Length, na.rm=TRUE))
+#'                   , levels = ident(c('versicolor', 'virginica'))
+#'                   )
+#' sql_render(query)
 #' @export
 sql_pivot <- function(con, from, select, key, value, levels, ...)
                     UseMethod('sql_pivot')
@@ -247,14 +341,14 @@ function(con, from, select, key, value, levels, order_by=NULL, fill=NULL, ...){
              , escape(c( escape(select, collapse=NULL, con = con)
                        , levels.text
                        ), collapse = ", ", con=con)
-             , nl, "FROM " , from
-             , nl, "PIVOT ("
+             , '\n', "FROM " , from
+             , '\n', "PIVOT ("
              , build_sql( con=con
-                        , nl, indent, value.text
-                        , nl, indent, 'FOR '  , unname(key), " IN "
+                        , '\n    ', value.text
+                        , '\n    ', 'FOR '  , unname(key), " IN "
                         , escape(unname(levels), parens=TRUE, collapse = ", ", con = con)
                         )
-             , nl, ') AS ', pvt.name
+             , '\n', ') AS ', pvt.name
              , if (!is.null(order_by)) {
                     assert_that(is.character(order_by), length(order_by) > 0)
                     build_sql(con=con, "\nORDER BY ", escape(unname(order_by), parens=FALSE, collapse=", ", con=con))
@@ -264,3 +358,7 @@ function(con, from, select, key, value, levels, order_by=NULL, fill=NULL, ...){
 
 #' @export
 `sql_pivot.Microsoft SQL Server` <- function(...)sql_pivot_MSSQLServer(...)
+
+#' @export
+#' @importFrom dplyr sql_escape_ident
+`sql_escape_ident.Microsoft SQL Server` <- function(con, x) dbplyr::sql_quote(x, "\"")

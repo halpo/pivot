@@ -3,3 +3,5 @@
 .git
 .Rprofile
 ^cran-comments\.md$
+^codecov\.yml$
+.covrignore

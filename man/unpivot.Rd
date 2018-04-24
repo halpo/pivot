@@ -2,41 +2,59 @@
 % Please edit documentation in R/unpivot.R
 \name{unpivot}
 \alias{unpivot}
-\title{Pivot a table}
+\title{Un-pivot a table}
 \usage{
 unpivot(data, key, value, ...)
 }
 \arguments{
 \item{data}{A data frame.}
 
-\item{key}{Column names or positions. This is passed to
-\code{\link[tidyselect:vars_pull]{tidyselect::vars_pull()}}.
+\item{key}{Names of new key and value columns, as strings or
+symbols.
 
-These arguments are passed by expression and support
-\link[rlang:quasiquotation]{quasiquotation} (you can unquote column
-names or column positions).}
+This argument is passed by expression and supports
+\link[rlang:quasiquotation]{quasiquotation} (you can unquote strings
+and symbols). The name is captured from the expression with
+\code{\link[rlang:quo_name]{rlang::quo_name()}} (note that this kind of interface where
+symbols do not represent actual objects is now discouraged in the
+tidyverse; we support it here for backward compatibility).}
 
-\item{value}{Column names or positions. This is passed to
-\code{\link[tidyselect:vars_pull]{tidyselect::vars_pull()}}.
+\item{value}{Names of new key and value columns, as strings or
+symbols.
 
-These arguments are passed by expression and support
-\link[rlang:quasiquotation]{quasiquotation} (you can unquote column
-names or column positions).}
+This argument is passed by expression and supports
+\link[rlang:quasiquotation]{quasiquotation} (you can unquote strings
+and symbols). The name is captured from the expression with
+\code{\link[rlang:quo_name]{rlang::quo_name()}} (note that this kind of interface where
+symbols do not represent actual objects is now discouraged in the
+tidyverse; we support it here for backward compatibility).}
 
-\item{...}{Selection criteria for levels of key to select.}
+\item{...}{Selection criteria for columns to unpivot.}
 }
 \description{
-Pivot a table
+Un-pivot a table
 }
 \examples{
-\dontrun{
-# establish db as a database connection
+# establish `db` as a database connection
+
+library(dplyr)
 library(dbplyr)
-library(tidyverse)
-db_iris <- copy_to(db, iris)
-long.iris <- unpivot(db_iris, Variable, Value, Sepal.Length, Sepal.Width, Petal.Length, Petal.Width)
-means <- summarise(group_by(long.iris, Species, Variable), Mean = mean(Value, na.rm=TRUE)
-pivot(means, Species, setosa, versicolor, virginica)
+\dontshow{
+   con <- simulate_mssql()
+   src <- src_dbi(con)
+   base <- list( x = ident('##iris')
+               , vars  = tbl_vars(iris)
+               ) \%>\% structure(class=c('op_base_remote', 'op_base', 'op'))
+   db_iris <- structure( list( src = src
+                             , ops = base
+                             )
+       , class = c('tbl_dbi', 'tbl_sql', 'tbl_lazy', 'tbl'))
 }
+\dontrun{
+    db_iris <- copy_to(db, iris)
+}
+long.iris <- unpivot(db_iris, Variable, Value, Sepal.Length, Sepal.Width, Petal.Length, Petal.Width)
+sql_render(long.iris)
+
 
 }

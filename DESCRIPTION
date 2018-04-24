@@ -6,14 +6,15 @@ Authors@R: person("Andrew", "Redd", role = c("aut", "cre")
                  , comment = c(ORCID = "https://orcid.org/000-0002-6149-2438")
                  )
 Maintainer: Andrew Redd <Andrew.Redd@hsc.utah.edu>
-Description: 
-    Extends the tidyverse dbplyr and tidyr functionality with pivot (ie. spread)
-    and unpivot (ie. gather) for reshaping remote sql_tbl tables 
-    residing. Currently only Microsoft SQL Server is supported. 
+Description:
+    Extends the tidyverse 'dbplyr' and 'tidyr' functionality with pivot() (ie. spread())
+    and unpivot() (ie. gather) for reshaping remote sql_tbl tables. 
+    Currently only Microsoft SQL Server is supported. 
 Depends: R (>= 3.4.0)
 Imports: assertthat, dplyr, dbplyr (>= 1.2.1), DBI, magrittr, purrr,
         rlang, tidyselect, tidyr, lubridate, colorspace
 Enhances: odbc
+Suggests: testthat, covr
 License: Unlimited
 Encoding: UTF-8
 LazyData: true

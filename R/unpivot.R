@@ -3,22 +3,34 @@ NULL
 
 globalVariables('.')
 
-#' Pivot a table
+#' Un-pivot a table
 #'
+#' @inheritParams tidyr::gather
 #' @inheritParams dplyr::select
-#' @inheritParams tidyr::spread
-#' @param ... Selection criteria for levels of key to select.
+#' @param ... Selection criteria for columns to unpivot.
 #'
 #' @examples
-#' \dontrun{
-#' # establish db as a database connection
+#' # establish `db` as a database connection
+#' 
+#' library(dplyr)
 #' library(dbplyr)
-#' library(tidyverse)
-#' db_iris <- copy_to(db, iris)
-#' long.iris <- unpivot(db_iris, Variable, Value, Sepal.Length, Sepal.Width, Petal.Length, Petal.Width)
-#' means <- summarise(group_by(long.iris, Species, Variable), Mean = mean(Value, na.rm=TRUE)
-#' pivot(means, Species, setosa, versicolor, virginica)
+#' \dontshow{
+#'    con <- simulate_mssql()
+#'    src <- src_dbi(con)
+#'    base <- list( x = ident('##iris')
+#'                , vars  = tbl_vars(iris)
+#'                ) %>% structure(class=c('op_base_remote', 'op_base', 'op'))
+#'    db_iris <- structure( list( src = src
+#'                              , ops = base
+#'                              )
+#'        , class = c('tbl_dbi', 'tbl_sql', 'tbl_lazy', 'tbl'))
 #' }
+#' \dontrun{
+#'     db_iris <- copy_to(db, iris)
+#' }
+#' long.iris <- unpivot(db_iris, Variable, Value, Sepal.Length, Sepal.Width, Petal.Length, Petal.Width)
+#' sql_render(long.iris)
+#' 
 #'
 #' @export
 unpivot <- function(data, key, value, ...) UseMethod("unpivot")
@@ -35,13 +47,25 @@ unpivot.tbl_lazy <-
     }
 
 #' @export
+unpivot.data.frame <- 
+function(data, key, value, ...){
+    key   <- rlang::enquo(key)
+    value <- rlang::enquo(value)
+    dots  <- rlang::quos(...)
+    tidyr::gather( data
+                 , key=!!key, value=!!value, !!!dots
+                 , na.rm=FALSE, convert=FALSE, factor_key=FALSE
+                 )
+}
+
+#' @export
 #' @importFrom dbplyr sql_build
 sql_build.op_unpivot <- function(op, con, ...){
-    levels   <- dplyr::select_vars( op_vars(op$x), !!!(op$dots), exclude=op_grps(op))
-    select   <- dplyr::select_vars( op_vars(op$x), tidyselect::everything()
-                                  , include = op_grps(op$x)
-                                  , exclude = levels
-                                  )
+    levels <- tidyselect::vars_select( op_vars(op$x), !!!(op$dots), exclude=op_grps(op))
+    select <- tidyselect::vars_select( op_vars(op$x), tidyselect::everything()
+                                     , .include = op_grps(op$x)
+                                     , .exclude = levels
+                                     )
     key      <- rlang::quo_name(op$args$key)
     value    <- rlang::quo_name(op$args$value)
 
@@ -61,7 +85,11 @@ sql_build.op_unpivot <- function(op, con, ...){
 
 #' @export
 op_vars.op_unpivot <- function(op){
-    select <- dplyr::select_vars(op_vars(op$x), include=op_grps(op$x))
+    levels <- tidyselect::vars_select( op_vars(op$x), !!!(op$dots), exclude=op_grps(op))
+    select <- tidyselect::vars_select( op_vars(op$x), tidyselect::everything()
+                                     , .include = op_grps(op$x)
+                                     , .exclude = levels
+                                     )
     c( names(select), rlang::quo_name(op$args$key), rlang::quo_name(op$args$value))
 }
 
@@ -89,11 +117,12 @@ unpivot_query <-
             , select = character(0)
             , order_by = NULL
             ){
-        structure( list( from   = from
-                       , key    = key
-                       , value  = value
-                       , levels = levels
-                       , select = select
+        structure( list( from     = from
+                       , key      = key
+                       , value    = value
+                       , levels   = levels
+                       , select   = select
+                       , order_by = order_by
                        )
                  , class = c('unpivot_query', 'query')
                  )
@@ -107,11 +136,12 @@ function( query, con=query$con, ..., root=FALSE){
     if (!is.ident(query$from))
         query$from <- dplyr::sql_subquery(con, sql_render(query$from, con, ..., root=root))
     sql_unpivot( con = con
-               , from   = query$from
-               , select = query$select
-               , key    = query$key
-               , value  = query$value
-               , levels = query$levels
+               , from     = query$from
+               , select   = query$select
+               , key      = query$key
+               , value    = query$value
+               , levels   = query$levels
+               , order_by = query$order_by
                )
 }
 
@@ -141,7 +171,7 @@ sql_unpivot <- function(con, from, select, key, value, levels, order_by=NULL)
              , "    (", value, " FOR ", key, " IN", '\n'
              , "        (", escape(levels , parens=FALSE, collapse = ", ", con = con), ')\n'
              , "    ) AS ", pvt.name
-             , if (!is.null(order_by)) {
+             , if (!is.null(order_by) && length(order_by) > 1) {
                    assert_that(is.character(order_by), length(order_by) > 0)
                    build_sql(con=con, "\nORDER BY ", escape(unname(order_by), parens=FALSE, collapse=", ", con=con))
                }

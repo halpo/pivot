@@ -25,3 +25,14 @@ sql_pivot(con, from, select, key, value, levels, ...)
 Creates a SQL pivot query.  Similar to the \code{tidyr::spread}
 function.
 }
+\examples{
+library(dbplyr)
+query <- sql_pivot( dbplyr::simulate_mssql()
+                  , from   = ident('##iris')
+                  , select = ident()
+                  , key    = ident('Species')
+                  , value  = rlang::quo(mean(Petal.Length, na.rm=TRUE))
+                  , levels = ident(c('versicolor', 'virginica'))
+                  )
+sql_render(query)
+}

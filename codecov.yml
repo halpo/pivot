@@ -1,0 +1,4 @@
+comment: false
+function_exclusions:
+    - tidyr.
+    - gather.
