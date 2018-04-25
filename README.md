@@ -1,7 +1,7 @@
 # pivot
 
 [![Build Status](https://api.travis-ci.org/halpo/pivot.svg?branch=master)](https://travis-ci.org/halpo/pivot)
-[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/pivot)](https://cran.r-project.org/package=pivot)
+<!--[![CRAN\_Status\_Badge](http://www.r-pkg.org/badges/version/pivot)](https://cran.r-project.org/package=pivot)-->
 [![codecov.io](https://codecov.io/github/halpo/pivot/coverage.svg?branch=master)](https://codecov.io/github/halpo/pivot?branch=master)
 
 ## License Disclaimer

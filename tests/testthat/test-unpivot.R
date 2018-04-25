@@ -88,10 +88,6 @@ test_that("order_by", {
                  , 'ORDER BY "Key", "Variable"'
                  , sep='\n'))
     )
-        
-    
-    
-    
 })
 
 

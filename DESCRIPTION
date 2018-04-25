@@ -1,5 +1,5 @@
 Package: pivot
-Title: SQL PIVOT and UNPIVOT
+Title: 'SQL' PIVOT and UNPIVOT
 Version: 18.4.17
 Authors@R: person("Andrew", "Redd", role = c("aut", "cre")
                  , email = "Andrew.Redd@hsc.utah.edu"
@@ -20,6 +20,6 @@ License: Unlimited
 Encoding: UTF-8
 LazyData: true
 RoxygenNote: 6.0.1
-Collate: 'pivot.R' 'unpivot.R' 'tidyr.R'
+Collate: 'pivot.R' 'unpivot.R' 'tidyr.R' 'utils.R' 'testing-utils.R'
 NeedsCompilation: no
 Language: en-US

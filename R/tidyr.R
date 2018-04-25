@@ -5,11 +5,11 @@ spread.tbl_lazy <- function(data, key, value, fill=NULL, ...){
     value <- rlang::enquo(value)
     data  %>%
         dplyr::group_by_(.dots =
-             dplyr::select_vars( dplyr::tbl_vars(data)
-                               , tidyselect::everything()
-                               , exclude = c( dplyr::select_var(dplyr::tbl_vars(data), !!key)
-                                            , all_names(value)
-                                            ))) %>%
+             tidyselect::vars_select( dplyr::tbl_vars(data)
+                                    , tidyselect::everything()
+                                    , .exclude = c( dplyr::select_var(dplyr::tbl_vars(data), !!key)
+                                                  , all_names(value)
+                                                  ))) %>%
         pivot(!!key, !!value, tidyselect::everything(), fill=fill)
 }
 

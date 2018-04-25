@@ -40,16 +40,20 @@ function( data, key, value, ..., fill=NULL
     if (!is.null(fill) && is.na(fill)) fill <- NULL
     args  <- list( key=key, value=value, fill=fill)
     if (identical(dots, rlang::quos())){
+        # nocov start
         if (info) message("No levels specified, defaulting to everything().")
         dots <- rlang::quos(tidyselect::everything())
         args$levels <- get_pivot_levels(data, !!key, !!!dots)
+        # nocov end
     } else
     if (any(. <- purrr::map_lgl(dots, rlang::quo_is_call))){
+        # nocov start
         args$levels <- get_pivot_levels(data, !!key, !!!dots)
         if (info) message( "calls ", paste(purrr::map_chr(dots[.], rlang::quo_text)), collapse=', '
                          , " were found in level specification, and evaluated to ("
                          , paste(args$levels, collapse=", "), ')'
                          )
+        # nocov end
     }
     add_op_single('pivot', data, dots, args)
 }
@@ -65,110 +69,34 @@ function( data, key, value, ...
     value <- rlang::enquo(value)
     dots  <- rlang::quos(...)
     if (is.null(fill)) fill <- NA
-    if (identical(dots, rlang::quos())){
+    if (identical(dots, rlang::quos())) {
         if (info) message("No levels specified, defaulting to everything().")
         dots <- rlang::quos(tidyselect::everything())
     }
+    used <- all_names(value)
     
-    if (rlang::quo_is_call(value)){
-        used <- all_names(value)
+    if (rlang::quo_is_call(value)) {
         remaining <- setdiff(dplyr::tbl_vars(data), used)
         levels  <- tidyselect::vars_select(as.character(unique(dplyr::pull(data, !!key))), !!!dots)
-        dplyr::summarise( dplyr::group_by_(data, .dots=remaining)
+        dplyr::summarise( dplyr::group_by(data, !!key, add=TRUE)
                         , !!rlang::quo_text(value) := !!value
                         ) %>%
-        dplyr::select(
-            dplyr::ungroup(
-                spread( key=!!key, value=!!rlang::quo_text(value), fill=fill
-                      , convert=FALSE, drop=TRUE, sep=NULL)),
-        !!!dplyr::group_vars(data), !!!levels)
+        dplyr::ungroup() %>%
+        spread( key   = !!key
+              , value = !!rlang::quo_text(value)
+              , fill =fill
+              , convert=FALSE, drop=TRUE, sep=NULL) %>%
+        dplyr::group_by(!!!dplyr::groups(data))
     } else {
-        spread.data <- 
-        tidyr::spread(data, key=!!key, value=!!value, fill=fill
-                     , convert=FALSE, drop=TRUE, sep=NULL)
-        dplyr::select(spread.data, !!!dplyr::group_vars(data), !!!dots)
+        data %>% dplyr::select(!!key, !!!dplyr::groups(data), !!!used) %>% 
+        tidyr::spread( key=!!key, value=!!value, fill=fill
+                     , convert=FALSE, drop=TRUE, sep=NULL) %>% 
+        dplyr::select(!!!dplyr::group_vars(data), !!!dots)
     }
 }
 if (FALSE) {#@testing
-tmp <- iris %>%
-    group_by(Species) %>% 
-    mutate(case_id = row_number()) %>% 
-    ungroup() %>%
-    gather(Variable, Value, 1:4) 
-tmp %>% spread(Species, Value)
-
-
-long.iris <- unpivot(iris, Variable, Value, Sepal.Length, Sepal.Width, Petal.Length, Petal.Width)
-means <- summarise(group_by(long.iris, Species, Variable), Mean = mean(Value, na.rm=TRUE))
-result <- pivot(means, Species, Mean, starts_with('v'))
-
-expect_is(result, 'tbl_df')
-expect_equal(dplyr::tbl_vars(result), c('Variable', 'versicolor', 'virginica'))
-expect_equal(pull(result, 'Variable'), c('Petal.Length', 'Petal.Width', 'Sepal.Length', 'Sepal.Width'))
 }
   
-# nocov start
-find_connection <- function(x)UseMethod('find_connection')
-
-find_connection.op <- function(x){
-    assert_that(inherits(op, 'op'))
-    op <- x
-    x <- op$x
-    while (!is.null(x)) {
-        if (inherits(x, 'tbl_lazy')) {
-            return(x$src$con)
-        } else
-        if (inherits(x, 'op')) {
-            x <- x$x
-        } else {
-            stop( "Could not find base table to infer con from.  "
-                , "Final op$x...$x value was "
-                , paste(class(x), collapse="/")
-                )
-        }
-    }
-    stop("Could not find a valid connection.")
-}
-find_connection.tbl_lazy<- function(x)x$src$con
-
-#' @importFrom magrittr %>%
-get_pivot_levels <- function(data, key, ..., con=find_connection(data)){
-    key  <- rlang::enquo(key)
-    dots <- rlang::quos(...)
-
-    dbplyr::select_query( from     = sql_build(data, con)
-                , select   = dbplyr::ident(dplyr::select_var(dplyr::tbl_vars(data), !!key))
-                , order_by = dbplyr::ident(dplyr::select_var(dplyr::tbl_vars(data), !!key))
-                , distinct = TRUE
-                ) %>%
-        dbplyr::sql_render(con=con) %>%
-        dbplyr::db_collect(con=con) %>%
-        rlang::eval_tidy(expr=key) %>%
-        as.character() %>%
-        dplyr::select_vars(!!!dots)
-}
-
-#' @export
-levels.op_pilot <- function(x){
-    assert_that(inherits(x, "op_pivot"))
-    con <- find_connection(x)
-    assert_that(inherits(con, "DBIConnection"))
-    levels_op_pivot(op=x, con=con)
-}
-levels_op_pivot <-
-function( op
-        , con = find_connection(op)
-        ){
-    assert_that( inherits(op , 'op_pivot') )
-    if (!is.null(op$args$levels))
-        return(op$args$levels)
-    purrr::map_lgl(op$dots, rlang::is_syntactic_literal)
-    if (!any(purrr::map_lgl(op$dots, rlang::quo_is_call)))
-        return (purrr::map_chr(op$dots, rlang::quo_text))
-    get_pivot_levels(op$x, !!op$args$key, !!!op$dots, con=con)
-}
-# nocov end
-
 all_names <- function (x) {
     if (is.name(x))  return(as.character(x))
     if (!is.call(x)) return(NULL)
@@ -189,8 +117,14 @@ sql_build.op_pivot <- function(op, con, ...){
             tidyselect::vars_select(op_vars(op$x), .include=op_grps(op$x))
 
     assert_that(!any(used_vars %in% select))
+    
+    needed.vars <- unname(c(key, select, used_vars))
+    
+    from <- dbplyr::sql_build(op$x, con=con)
+    if (!all(dbplyr::op_vars(op$x) %in% needed.vars))
+        from <- dbplyr::select_query(from, needed.vars)
 
-    pivot_query( from   = dbplyr::sql_build(op$x, con=con)
+    pivot_query( from   = from
                , select = ident(select)
                , key    = ident(key)
                , value  = value
