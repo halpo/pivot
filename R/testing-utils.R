@@ -16,7 +16,7 @@ apply_op.op <- function(op){
     e <- rlang::expr(FUN(!!!c(rlang::expr(.data), op$args, op$dots)))
     
     .data <- apply_op(op$x)
-    eval(e, env=environment())
+    eval(e, envir=environment())
 }
 pull.tbl_lazy <- function(.data, var=-1)
     dplyr::pull(apply_op(.data), var=!!rlang::enquo(var))
