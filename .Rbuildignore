@@ -5,3 +5,5 @@
 ^cran-comments\.md$
 ^codecov\.yml$
 .covrignore
+^.*\.Rproj$
+^\.Rproj\.user$

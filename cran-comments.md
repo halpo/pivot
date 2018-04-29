@@ -1,5 +1,6 @@
 ## Test environments
-* local linux install, R 3.4.3
+* local linux install, R 3.5.0
+* local Windows 10, R 3.5.0
 * ubuntu 14.04 (on travis-ci), R 3.4.4
 * win-builder (devel and release)
 
@@ -12,6 +13,12 @@
 ## Reverse dependencies
 
 This is a new release, so there are no reverse dependencies.
+
+---
+Update 2018-04-29
+
+* Title now contains 'SQl' in single quotes.
+* expanded testing.
 
 ---
 Update 2018-04-24
