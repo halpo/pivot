@@ -11,6 +11,8 @@ Description:
     with pivot(), i.e. spread(), and unpivot(), i.e. gather(), for 
     reshaping remote tables. 
     Currently only 'Microsoft SQL Server' is supported. 
+URL: https://github.com/halpo/pivot
+BugReports: https://github.com/halpo/pivot/issues
 Depends: R (>= 3.4.0)
 Imports: assertthat, dplyr, dbplyr (>= 1.2.1), DBI, magrittr, purrr,
         rlang, tidyselect, tidyr, lubridate, colorspace
