@@ -39,16 +39,14 @@ function( data, key, value, ..., fill=NULL
     dots  <- rlang::quos(...)
     if (!is.null(fill) && is.na(fill)) fill <- NULL
     args  <- list( key=key, value=value, fill=fill)
-    if (identical(dots, rlang::quos())){
+    if (identical(dots, rlang::quos())) {
         # nocov start
         if (info) message("No levels specified, defaulting to everything().")
         dots <- rlang::quos(tidyselect::everything())
-        args$levels <- get_pivot_levels(data, !!key, !!!dots)
         # nocov end
     } else
     if (any(. <- purrr::map_lgl(dots, rlang::quo_is_call))){
         # nocov start
-        args$levels <- get_pivot_levels(data, !!key, !!!dots)
         if (info) message( "calls ", paste(purrr::map_chr(dots[.], rlang::quo_text)), collapse=', '
                          , " were found in level specification, and evaluated to ("
                          , paste(args$levels, collapse=", "), ')'
@@ -258,12 +256,12 @@ function(con, from, select, key, value, levels, order_by=NULL, fill=NULL, ...){
         dbplyr::translate_sql(!!value, con=con, window=FALSE)
     }
 
-    levels.text <- if(is.null(fill)) escape(levels, collapse=NULL) else {
+    levels.text <- if(is.null(fill)) escape(levels, collapse=NULL, con=con) else {
         fill <- escape(fill, con=con)
 
         dbplyr::sql(rlang::set_names(nm=ifelse(rlang::have_name(levels), names(levels), unclass(levels)),
-            purrr::map_chr( escape(levels, collapse=NULL)
-                          , ~build_sql('ISNULL(', dbplyr::sql(.), ',', fill, ')')
+            purrr::map_chr( escape(levels, collapse=NULL, con=con)
+                          , ~build_sql('ISNULL(', dbplyr::sql(.), ',', fill, ')', con=con)
                           ) %>%
                 rlang::set_names(levels)
         ))

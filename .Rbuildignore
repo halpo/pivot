@@ -1,9 +1,6 @@
-.travis.yml
-.gitignore
-.git
-.Rprofile
-^cran-comments\.md$
-^codecov\.yml$
-.covrignore
 ^.*\.Rproj$
 ^\.Rproj\.user$
+^\.covrignore$
+^\.travis\.yml$
+^codecov\.yml$
+^cran-comments.md$

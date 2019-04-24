@@ -13,16 +13,16 @@ test_that("PIVOT construction", {
                               )
         , class = c('tbl_dbi', 'tbl_sql', 'tbl_lazy', 'tbl'))
 
-    grouped <- group_by(db_long, Variable)
+    grouped <- dplyr::group_by(db_long, Variable)
 
     wide <- pivot(grouped, Species, mean(Value, na.rm=TRUE), Length = Petal.Length, Petal.Width)
     expect_is(wide, 'tbl_sql')
     expect_identical(wide$src, src)
     expect_identical(wide$ops$x, grouped$ops)
     expect_is(wide$ops, 'op_pivot')
-    expect_equal(wide$ops$dots, quos(Length = Petal.Length, Petal.Width))
-    expect_equal(wide$ops$args$key, quo(Species))
-    expect_equal(wide$ops$args$value, quo(mean(Value, na.rm=TRUE)))
+    expect_equal(wide$ops$dots, rlang::quos(Length = Petal.Length, Petal.Width))
+    expect_equal(wide$ops$args$key, rlang::quo(Species))
+    expect_equal(wide$ops$args$value, rlang::quo(mean(Value, na.rm=TRUE)))
     expect_null(wide$ops$args$fill)
     expect_equal(op_vars(wide), c('Variable', 'Length', 'Petal.Width'))
 
@@ -35,25 +35,25 @@ test_that("PIVOT construction", {
     expect_is(pivot.built, 'query')
     expect_identical(pivot.built$from  , ident('##long'))
     expect_identical(pivot.built$key   , ident('Species'))
-    expect_identical(pivot.built$value , quo(mean(Value, na.rm=TRUE)))
+    expect_identical(pivot.built$value , rlang::quo(mean(Value, na.rm=TRUE)))
     expect_identical(pivot.built$levels, ident(c('Length'='Petal.Length', 'Petal.Width')))
     expect_identical(pivot.built$select, ident(c('Variable'='Variable')))
     expect_null(pivot.built$fill)
     expect_null(pivot.built$order_by)
 
-    pivot.sql <- sql_render(wide)
+    pivot.sql <- sql_render(wide, con=con)
     expect_is(pivot.sql, 'sql')
     expect_is(pivot.sql, 'character')
     expect_equal(length(pivot.sql), 1)
 
     expect_identical(pivot.sql,
-        sql(paste( 'SELECT "Variable", "Petal.Length" AS "Length", "Petal.Width"'
-                 , 'FROM "##long"'
-                 , 'PIVOT ('
-                 , '    AVG("Value")'
-                 , '    FOR "Species" IN ("Petal.Length", "Petal.Width")'
-                 , ') AS "mean_Value__na_rm___TRUE_"'
-                 , sep='\n'))
+        dbplyr::sql(paste( 'SELECT "Variable", "Petal.Length" AS "Length", "Petal.Width"'
+                         , 'FROM "##long"'
+                         , 'PIVOT ('
+                         , '    AVG("Value")'
+                         , '    FOR "Species" IN ("Petal.Length", "Petal.Width")'
+                         , ') AS "mean_Value__na_rm___TRUE_"'
+                         , sep='\n'))
     )
 })
 test_that("PIVOT warnings and errors", {
@@ -70,7 +70,7 @@ test_that("PIVOT warnings and errors", {
         , class = c('tbl_dbi', 'tbl_sql', 'tbl_lazy', 'tbl'))
     expect_warning({
         sql_pivot_MSSQLServer( con, ident('##test'), ident(), ident('Key')
-                             , quo(Value), ident(c('a', 'b', 'c'))
+                             , rlang::quo(Value), ident(c('a', 'b', 'c'))
                              , ident('Key'), fill=0L
                              )
     }, 'Microsoft SQL Server Pivot Query requires an aggregate function.')
@@ -79,7 +79,7 @@ test_that("PIVOT warnings and errors", {
         sql_pivot_MSSQLServer( con, ident('##test')
                              , ident()
                              , ident('Key')
-                             , quo(Max(Value)), ident(c('a', 'b', 'c'))
+                             , rlang::quo(Max(Value)), ident(c('a', 'b', 'c'))
                              , order_by = 1
                              , fill=0L
                              )
@@ -89,7 +89,7 @@ test_that("PIVOT warnings and errors", {
         sql_pivot_MSSQLServer( con, ident('##test')
                              , ident()
                              , ident('Key')
-                             , quo(Max(Value)), ident(c('a', 'b', 'c'))
+                             , rlang::quo(Max(Value)), ident(c('a', 'b', 'c'))
                              , order_by = character(0)
                              , fill=0L
                              )
@@ -102,7 +102,7 @@ test_that("PIVOT with nested select", {
 
     pivot.base <- 
         list( x = ident('##iris')
-            , vars  = tbl_vars(datasets::iris)
+            , vars  = dplyr::tbl_vars(datasets::iris)
             ) %>% structure(class=c('op_base_remote', 'op_base', 'op'))
     db_iris <- structure( list( src = src
                               , ops = pivot.base
@@ -121,12 +121,12 @@ test_that("pivot.data.frame", {
     result1 <- pivot(iris, Species, mean(Petal.Length))
     expect_is(result1, 'tbl')
     expect_is(result1, 'data.frame')
-    expect_equal(tbl_vars(result1), c('setosa', 'versicolor', 'virginica')) 
+    expect_equal(dplyr::tbl_vars(result1), c('setosa', 'versicolor', 'virginica')) 
     expect_equal(nrow(result1), 1)
     
     result2 <- 
-        iris %>% group_by(Species) %>% 
-        summarise_all(mean) %>% 
+        iris %>% dplyr::group_by(Species) %>% 
+        dplyr::summarise_all(mean) %>% 
         pivot(Species, Petal.Length)
     expect_is(result2, 'tbl')
     expect_is(result2, 'data.frame')

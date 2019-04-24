@@ -4,8 +4,8 @@
 \alias{pivot_query}
 \title{Create a pivot query representation}
 \usage{
-pivot_query(from, key, value, levels, select = ident(), order_by = NULL,
-  fill = NULL)
+pivot_query(from, key, value, levels, select = ident(),
+  order_by = NULL, fill = NULL)
 }
 \arguments{
 \item{from}{the from clause}

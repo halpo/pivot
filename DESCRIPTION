@@ -1,6 +1,6 @@
 Package: pivot
 Title: 'SQL' PIVOT and UNPIVOT
-Version: 18.4.17
+Version: 19.4.24
 Authors@R: person("Andrew", "Redd", role = c("aut", "cre")
                  , email = "Andrew.Redd@hsc.utah.edu"
                  , comment = c(ORCID = "https://orcid.org/000-0002-6149-2438")
@@ -19,7 +19,7 @@ Suggests: testthat, covr
 License: Unlimited
 Encoding: UTF-8
 LazyData: true
-RoxygenNote: 6.0.1
+RoxygenNote: 6.1.1
 Collate: 'pivot.R' 'unpivot.R' 'tidyr.R' 'utils.R' 'testing-utils.R'
 NeedsCompilation: no
 Language: en-US

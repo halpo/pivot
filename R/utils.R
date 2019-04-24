@@ -47,7 +47,6 @@ function( op
     assert_that( inherits(op , 'op_pivot') )
     if (!is.null(op$args$levels))
         return(op$args$levels)
-    purrr::map_lgl(op$dots, rlang::is_syntactic_literal)
     if (!any(purrr::map_lgl(op$dots, rlang::quo_is_call)))
         return (purrr::map_chr(op$dots, rlang::quo_text))
     get_pivot_levels(op$x, !!op$args$key, !!!op$dots, con=con)
